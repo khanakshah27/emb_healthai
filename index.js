@@ -17,7 +17,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 const apikey = process.env.API_KEY; //
 const genAI = new GoogleGenerativeAI(apikey);
-const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 console.log("Attempting to use API Key:",apikey); 
 
 let latestData = {};
