@@ -1,0 +1,31 @@
+# Node modules
+node_modules/
+
+# Environment variables
+.env
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# IDE/editor settings
+.vscode/
+.idea/
+
+# Optional: ignore build artifacts if any
+dist/
+build/
+
+# Ignore coverage reports
+coverage/
+
+# Optional: ignore package lock files (if not committing them)
+# package-lock.json
+# yarn.lock

@@ -1,0 +1,486 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Health AI Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: #000000;
+            color: #ffffff;
+            min-height: 100vh;
+            padding: 1rem;
+            position: relative;
+            background:
+                radial-gradient(circle at bottom left, rgba(0, 0, 139, 0.3) 0%, transparent 25%),
+                /* Bottom-Left */
+                radial-gradient(circle at bottom right, rgba(0, 0, 139, 0.3) 0%, transparent 25%),
+                /* Bottom-Right */
+                #000000;
+
+
+            background-attachment: fixed;
+        }
+
+
+        .logo {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            max-height: 28%;
+            max-width: 28%;
+
+        }
+
+        .container {
+            min-width: auto;
+            margin: 0 auto;
+            display: flex;
+            justify-content: center;
+            flex-direction: column;
+            align-items: center;
+
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+
+        @media (min-width: 768px) {
+            .grid {
+                grid-template-columns: 2fr 1fr;
+            }
+        }
+
+        .card {
+            background: none;
+            border: 1px solid #222222;
+            border-radius: 8px;
+            padding: 1.5rem;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        button {
+            padding: 0.75rem 1rem;
+            background: #1a1a1a;
+            color: #ffffff;
+            border: 1px solid #333333;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            flex: 1;
+            min-width: 120px;
+        }
+
+        @media (min-width: 480px) {
+            button {
+                flex: none;
+            }
+        }
+
+        button:hover {
+            background: #252525;
+            border-color: #444444;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin: 1rem 0;
+            font-size: 0.9rem;
+        }
+
+        .status.ok {
+            color: #4ade80;
+        }
+
+        .status.err {
+            color: #f87171;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 0.5rem;
+            margin: 1rem 0;
+        }
+
+        input {
+            flex: 1;
+            padding: 0.75rem;
+            background: #1a1a1a;
+            border: 1px solid #333333;
+            border-radius: 6px;
+            color: #ffffff;
+            font-size: 0.9rem;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #4ade80;
+        }
+
+        .transcript,
+        .reply {
+            background: #0a0a0a;
+            padding: 1rem;
+            border-radius: 6px;
+            border: 1px solid #1a1a1a;
+            margin: 1rem 0;
+            min-height: 60px;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .reply {
+            min-height: 100px;
+        }
+
+        .sensor-data {
+            background: #0a0a0a;
+            padding: 1rem;
+            border-radius: 6px;
+            border: 1px solid #1a1a1a;
+            overflow-x: auto;
+        }
+
+        .sensor-data pre {
+            font-size: 0.8rem;
+            line-height: 1.4;
+            color: #a3a3a3;
+        }
+
+        .section-title {
+            font-size: 1rem;
+            font-weight: 500;
+            margin-bottom: 0.75rem;
+            color: #e5e5e5;
+        }
+
+
+
+        .indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #333333;
+        }
+
+        .indicator.active {
+            background: #4ade80;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 0.75rem;
+            }
+
+            h2 {
+                font-size: 1.25rem;
+                margin-bottom: 1rem;
+            }
+
+            .card {
+                padding: 1rem;
+            }
+
+            .controls {
+                flex-direction: column;
+            }
+
+            button {
+                min-width: unset;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- html page to display the data -->
+    <div class="container">
+
+        <img class="logo" src="watch2.png" /> 
+
+        <div class="grid">
+            <div class="card">
+                <div class="controls">
+                    <button id="btn">Start Speaking</button>
+                    <button id="stopBtn" disabled>Stop</button>
+                    <button id="stopSpeakBtn">Stop Speech</button>
+                </div>
+
+                <div class="status" id="statusContainer">
+                    <div class="indicator" id="indicator"></div>
+                    <span id="status">Ready</span>
+                </div>
+
+                <div class="section-title">Transcript</div>
+                <div class="transcript" id="transcript">—</div>
+
+                <div class="input-group">
+                    <input id="textQuery" type="text" placeholder="Type your question…" />
+                    <button id="sendBtn">Send</button>
+                </div>
+
+                <div class="section-title">AI Response</div>
+                <div class="reply" id="reply">Waiting for input...</div>
+            </div>
+
+            <div class="card">
+                <div class="section-title">Sensor Data</div>
+                <div class="sensor-data">
+                    <pre id="sensorJson">Loading…</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        //inside the script tag we write some javascript to make our interface interactive
+        //we select all our elements using their id, so we can manipulate their logic as we need
+        const btn = document.getElementById('btn');
+        const stopBtn = document.getElementById('stopBtn');
+        const stopSpeakBtn = document.getElementById('stopSpeakBtn');
+        const sendBtn = document.getElementById('sendBtn');
+        const statusEl = document.getElementById('status');
+        const statusContainer = document.getElementById('statusContainer');
+        const indicator = document.getElementById('indicator');
+        const transcriptEl = document.getElementById('transcript');
+        const replyEl = document.getElementById('reply');
+        const sensorJsonEl = document.getElementById('sensorJson');
+        const textInput = document.getElementById('textQuery');
+
+        let recognition = null; //this is the speech recognition object
+
+        //updates the input status based on whether there is input query or not, ok - green, err - red
+        function updateStatus(text, type = '') {
+            statusEl.textContent = text;
+            statusContainer.className = `status ${type}`;
+            indicator.className = `indicator ${type === 'ok' && text === 'Listening…' ? 'active' : ''}`;
+        }
+
+
+        //asynchronous function to fetch sensor data from /data endpoint and display it in formatted string
+        async function refreshSensor() {
+            try {
+                const r = await fetch('/data');
+                const j = await r.json();
+                sensorJsonEl.textContent = JSON.stringify(j, null, 2);
+            } catch (e) {
+                sensorJsonEl.textContent = 'Error loading sensor data';
+            }
+        }
+        refreshSensor();
+        setInterval(refreshSensor, 3000);
+
+
+        function browserSupportsSpeech() {
+            return 'SpeechRecognition' in window || 'webkitSpeechRecognition' in window;
+        }
+        //checks if your browser supports speech recognition or not
+
+
+
+        //this functions converts ai response to voice speech output using Web Speech API
+        //basically voice output
+        function speakText(text) {
+            if (!("speechSynthesis" in window)) return;
+            speechSynthesis.cancel();
+            const utter = new SpeechSynthesisUtterance(text);
+
+            function setVoice() {
+                const voices = speechSynthesis.getVoices();
+                const googleUK = voices.find(v => v.name === "Google US English Female");
+                if (googleUK) {
+                    utter.voice = googleUK;
+                    utter.lang = googleUK.lang;
+                } else {
+                    setTimeout(setVoice, 100);
+                    return;
+                }
+                speechSynthesis.speak(utter);
+            }
+
+            if (speechSynthesis.getVoices().length === 0) {
+                speechSynthesis.onvoiceschanged = setVoice;
+            } else {
+                setVoice();
+            }
+        }
+
+        //speech input is not taken once the stop button is clicked
+        stopSpeakBtn.onclick = () => {
+            if (speechSynthesis) {
+                speechSynthesis.cancel();
+            }
+        };
+
+
+
+        //this function sends user request to /ask-ai endpoint and displays the ai response
+        async function askAI(query) {
+            const r = await fetch('/ask-ai', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ query })
+            });
+            if (!r.ok) {
+                const j = await r.json().catch(() => ({}));
+                throw new Error(j.error || `HTTP ${r.status}`);
+            }
+            const j = await r.json();
+            const reply = j.response || '';
+
+            function cleanResponseText(text) { //formatting response in readable way
+                return text.replace(/[*\-•]\s*/g, "")
+                    .replace(/\s+/g, " ")
+                    .trim();
+            }
+            const replyParsed = cleanResponseText(reply);
+
+            if (replyParsed) speakText(replyParsed);
+
+            return reply;
+        }
+
+
+        //onclick - this is your event handler- meaning upon clicking an action is taking place
+        //speech to text using browser's in-built: Web Speech API
+        //SpeechRecognition object is created and it listens for input
+        btn.onclick = async () => {
+            replyEl.textContent = 'Waiting for input...';
+            transcriptEl.textContent = '—';
+
+            if (!browserSupportsSpeech()) { //check if browser supports speech
+                updateStatus('Speech not supported', 'err');
+                alert('Your browser does not support SpeechRecognition. Use Chrome/Edge.');
+                return;
+            }
+
+            const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SR(); //here we are creating the object that will listen to speech
+            recognition.lang = 'en-US';
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
+
+            recognition.onstart = () => {
+                updateStatus('Listening…', 'ok');
+                btn.disabled = true;
+                stopBtn.disabled = false;
+            };
+            recognition.onerror = (e) => {
+                updateStatus(`Error: ${e.error}`, 'err');
+                btn.disabled = false;
+                stopBtn.disabled = true;
+            };
+            recognition.onend = () => {
+                if (statusEl.textContent.startsWith('Listening')) {
+                    updateStatus('Stopped');
+                }
+                btn.disabled = false;
+                stopBtn.disabled = true;
+            };
+
+            {/*This is the most important handler. When a user stops speaking 
+                and the browser has a final transcript, 
+                this is called. It takes and displays user's query 
+                and then calls the askAI function to send the query to the server 
+                and process the AI's response. */}
+
+            recognition.onresult = async (ev) => {
+                const text = ev.results[0][0].transcript;
+                transcriptEl.textContent = text;
+                updateStatus('Processing…', 'ok');
+                try {
+                    const ai = await askAI(text); //now user input sent to ai
+                    replyEl.textContent = ai;
+                    updateStatus('Complete', 'ok');
+                } catch (err) {
+                    replyEl.textContent = `Failed: ${err.message}`;
+                    updateStatus('Failed', 'err');
+                }
+            };
+
+            recognition.start();
+        };
+
+        stopBtn.onclick = () => { //stops the speech listening
+            if (recognition) {
+                recognition.stop();
+                updateStatus('Stopped');
+                stopBtn.disabled = true;
+                btn.disabled = false;
+            }
+        };
+
+        //event handler button for sending manual text input
+        sendBtn.onclick = async () => {
+            const query = textInput.value.trim();
+            if (!query) return;
+            transcriptEl.textContent = query;
+            replyEl.textContent = 'Processing...';
+            updateStatus('Processing…', 'ok');
+
+            try { //same process as above
+                const ai = await askAI(query);
+                replyEl.textContent = ai;
+                updateStatus('Complete', 'ok');
+                textInput.value = '';
+            } catch (err) {
+                replyEl.textContent = `Failed: ${err.message}`;
+                updateStatus('Failed', 'err');
+            }
+        };
+
+        textInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendBtn.click();
+            }
+        });
+    </script>
+</body>
+
+</html>
