@@ -1,4 +1,4 @@
-# Spectra Server side reference
+# Server side reference
 
 ## Server (`index.js`)
 
